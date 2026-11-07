@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Отчёт за период — концепт печатной страницы Qubitrino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    /* Print is always light: dark theme never reaches the printer */
+    :root { --c-paper: 255 255 255; }
+
+    @page {
+      size: A4;
+      margin: 16mm 14mm 18mm;
+      @bottom-left { content: "qubitrino.ai · счёт 5000000001"; font: 8pt "Onest", sans-serif; color: #6b7079; }
+      @bottom-right { content: "стр. " counter(page) " из " counter(pages); font: 8pt "JetBrains Mono", monospace; color: #6b7079; }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: rgb(var(--c-sunken)); }
+    .sheet {
+      width: 210mm; min-height: 297mm; margin: 16px auto 40px; padding: 16mm 14mm;
+      background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.08);
+      font-size: 10pt; line-height: 1.45;
+    }
+    .toolbar { max-width: 210mm; margin: 24px auto 0; display: flex; gap: 12px; align-items: center; font-size: 14px; padding: 0 4px; }
+    .toolbar a { color: rgb(var(--c-ink-2)); }
+    .toolbar button { height: 40px; padding: 0 16px; border: 0; border-radius: var(--radius-sm); background: rgb(var(--c-action)); color: #fff; font: 500 14px var(--font-ui); cursor: pointer; }
+
+    h1 { font-size: 20pt; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-top: 2mm; }
+    h2 { font-size: 11pt; font-weight: 600; margin: 9mm 0 3mm; }
+    .meta { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: 2mm 10mm; margin-top: 5mm; font-size: 9pt; }
+    .meta dt, .muted { color: rgb(var(--c-ink-2)); }
+    .split { display: grid; grid-template-columns: 1fr 1fr; border-top: 1.5pt solid rgb(var(--c-ink)); border-bottom: 0.5pt solid rgb(var(--c-line)); margin-top: 7mm; }
+    .split > div { padding: 4mm 0; }
+    .split > div + div { border-left: 0.5pt solid rgb(var(--c-line)); padding-left: 6mm; }
+    .big { font-size: 22pt; font-weight: 500; line-height: 1.1; margin-top: 1.5mm; }
+    .loss { color: rgb(var(--c-loss)); }
+    .gain { color: rgb(var(--c-gain)); }
+    .swatch { display: inline-block; width: 8pt; height: 8pt; border-radius: 2pt; vertical-align: -1pt; margin-right: 4pt; }
+    .kept { background: rgb(var(--c-kept)); }
+
+    .strip { display: flex; align-items: flex-end; gap: 1.5mm; height: 26mm; }
+    .strip div { flex: 1; text-align: center; font-size: 7.5pt; color: rgb(var(--c-ink-2)); }
+    .strip span { display: block; border-radius: 1.5pt; margin-bottom: 1mm; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    th { text-align: left; font-weight: 500; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: rgb(var(--c-ink-2)); border-bottom: 1pt solid rgb(var(--c-ink)); padding: 0 2mm 1.5mm; }
+    td { padding: 1.6mm 2mm; border-bottom: 0.5pt solid rgb(var(--c-line)); }
+    tr { break-inside: avoid; }
+    thead { display: table-header-group; } /* header row repeats on every printed page */
+    .r { text-align: right; }
+    td:first-child, td.r { white-space: nowrap; }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 0.5pt solid rgb(var(--c-line)); }
+    .kpis div { padding: 3mm 0; border-bottom: 0.5pt solid rgb(var(--c-line)); }
+    .kpis dt { font-size: 8pt; color: rgb(var(--c-ink-2)); }
+    .kpis dd { font-size: 12pt; margin-top: 0.5mm; }
+    .note { margin-top: 8mm; font-size: 8pt; color: rgb(var(--c-ink-2)); break-inside: avoid; }
+
+    @media print {
+      body { background: none; }
+      .toolbar { display: none; }
+      .sheet { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* markers must survive printing */
+      h2 { break-after: avoid; }
+    }
+    @media screen and (max-width: 840px) {
+      .sheet { width: auto; min-height: 0; margin: 16px; padding: 20px 16px; }
+      .meta, .kpis { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; }
+      .split > div + div { border-left: 0; padding-left: 0; border-top: 0.5pt solid rgb(var(--c-line)); }
+      .table-wrap { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <a href="index.html">← Мои цифры</a>
+    <span class="muted" style="margin-left:auto">A4 · книжная</span>
+    <button type="button" id="print">Печать / PDF</button>
+  </div>
+
+  <main class="sheet">
+    <header>
+      <p class="muted" style="font-size:9pt">qubitrino<span style="color:rgb(var(--c-action))">.</span> · отчёт о дисциплине</p>
+      <h1>Правила и результат<br>24 февраля — 30 марта 2026</h1>
+      <dl class="meta">
+        <div><dt>Трейдер</dt><dd>Иванов И. И.</dd></div>
+        <div><dt>Счёт</dt><dd class="num">5000000001</dd></div>
+        <div><dt>Инструменты</dt><dd>GBPUSD, NZDUSD, EURUSD</dd></div>
+        <div><dt>Сформирован</dt><dd class="num" id="generated"></dd></div>
+      </dl>
+    </header>
+
+    <section class="split" aria-label="Результат по дням с соблюдением и нарушением правил">
+      <div>
+        <p class="muted"><span class="swatch kept"></span>Дни по правилам · <span id="kept-n"></span></p>
+        <p class="num big" id="kept-pnl"></p>
+      </div>
+      <div>
+        <p class="muted"><span class="swatch hatch"></span>Дни с нарушениями · <span id="broken-n"></span></p>
+        <p class="num big loss" id="broken-pnl"></p>
+      </div>
+    </section>
+
+    <h2>Отметки дней <span class="muted" style="font-weight:400">— высота столбца = число сделок</span></h2>
+    <div class="strip" id="strip" aria-hidden="true"></div>
+
+    <h2>Ключевые показатели</h2>
+    <dl class="kpis" id="kpis"></dl>
+
+    <h2>По дням</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>День</th><th class="r">Сделки</th><th class="r">Прибыльные</th><th class="r">Результат</th><th>Нарушенные правила</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <p class="note" id="rules-note"></p>
+  </main>
+
+  <script type="module" src="report.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+/*
+  Qubitrino — design tokens (concept)
+  Colours are stored as RGB channels so Tailwind can apply opacity:
+  rgb(var(--c-ink) / 0.6). One source of truth for screen, dark theme and print.
+*/
+
+:root {
+  /* Surfaces */
+  --c-paper: 246 245 241;      /* page background — warm, not clinical white */
+  --c-surface: 255 255 255;    /* panels */
+  --c-sunken: 239 238 233;     /* inputs, table stripes */
+  --c-line: 226 224 217;       /* hairlines */
+
+  /* Text */
+  --c-ink: 22 24 28;           /* primary text */
+  --c-ink-2: 84 89 97;         /* secondary text */
+  --c-ink-3: 102 107 115;      /* captions — 4.9:1 on paper, 4.6:1 on sunken */
+
+  /* Action — the only "brand" hue, used for interaction, never for data */
+  --c-action: 37 99 235;        /* brand blue (qubitrinotech.ru #3B82F6), darkened to 5.2:1 for text */
+  --c-on-action: 255 255 255;
+
+  /* Money: result of the trade */
+  --c-gain: 14 122 95;
+  --c-loss: 180 70 43;
+
+  /* Discipline: result of the behaviour — deliberately NOT red/green */
+  --c-kept: 22 24 28;          /* rule kept → solid ink */
+  --c-broken: 184 120 10;      /* rule broken → amber + hatch; ≥3:1 non-text contrast */
+
+  /* AI features only — the brand violet (#B133FA family) */
+  --c-ai: 124 58 237;
+
+  /* Type */
+  --font-ui: "Onest", system-ui, sans-serif;
+  --font-num: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-base: 220ms;
+
+  color-scheme: light;
+}
+
+/* Dark: warm graphite instead of OLED black — long sessions, less halation on numbers */
+:root[data-theme="dark"] {
+  --c-paper: 13 17 23;          /* brand graphite #0D1117 */
+  --c-surface: 22 27 34;
+  --c-sunken: 30 36 44;
+  --c-line: 48 54 61;
+  --c-ink: 230 237 243;
+  --c-ink-2: 158 167 179;
+  --c-ink-3: 139 148 158;
+  --c-action: 88 166 255;        /* brand #58A6FF */
+  --c-on-action: 9 14 22;
+  --c-gain: 63 185 80;           /* brand #3FB950 */
+  --c-loss: 240 128 108;
+  --c-kept: 230 237 243;
+  --c-broken: 227 169 58;
+  --c-ai: 190 140 255;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --c-paper: 13 17 23;          /* brand graphite #0D1117 */
+  --c-surface: 22 27 34;
+  --c-sunken: 30 36 44;
+  --c-line: 48 54 61;
+  --c-ink: 230 237 243;
+  --c-ink-2: 158 167 179;
+  --c-ink-3: 139 148 158;
+  --c-action: 88 166 255;        /* brand #58A6FF */
+  --c-on-action: 9 14 22;
+  --c-gain: 63 185 80;           /* brand #3FB950 */
+  --c-loss: 240 128 108;
+  --c-kept: 230 237 243;
+  --c-broken: 227 169 58;
+  --c-ai: 190 140 255;
+    color-scheme: dark;
+  }
+}
+
+/* keep focused elements clear of the fixed mobile tab bar */
+html { -webkit-text-size-adjust: 100%; scroll-padding-bottom: 5rem; }
+body {
+  background: rgb(var(--c-paper));
+  color: rgb(var(--c-ink));
+  font-family: var(--font-ui);
+}
+
+/* Every number in the product goes through .num — mono + tabular, so columns align */
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.01em;
+}
+
+/* Broken-rule marker: colour AND pattern — readable for colour-blind users and in B/W print */
+.hatch {
+  background-color: rgb(var(--c-broken));
+  background-image: repeating-linear-gradient(
+    -45deg, transparent 0 3px, rgb(var(--c-surface) / 0.6) 3px 5px
+  );
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--c-action));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

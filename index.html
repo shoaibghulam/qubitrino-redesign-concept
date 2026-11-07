@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Главная — кабинет Qubitrino (концепт)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="tokens.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try {
+      const saved = new URLSearchParams(location.search).get("theme") || localStorage.getItem("q-theme");
+      if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+    } catch (e) { /* storage blocked — fall back to prefers-color-scheme */ }
+  </script>
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    const token = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: token("paper"), surface: token("surface"), sunken: token("sunken"),
+            line: token("line"), ink: token("ink"), "ink-2": token("ink-2"), "ink-3": token("ink-3"),
+            action: token("action"), "on-action": token("on-action"),
+            gain: token("gain"), loss: token("loss"), kept: token("kept"), broken: token("broken"), ai: token("ai"),
+          },
+          fontFamily: { ui: ["Onest", "system-ui", "sans-serif"], num: ["JetBrains Mono", "monospace"] },
+          borderRadius: { sm: "var(--radius-sm)", md: "var(--radius-md)" },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Skeleton shimmer: opacity only, switched off by the reduced-motion reset in tokens.css */
+    @keyframes q-pulse { 50% { opacity: 0.45; } }
+    .skeleton { background: rgb(var(--c-sunken)); border-radius: 4px; animation: q-pulse 1.2s ease-in-out infinite; }
+    #more-sheet[open] { animation: q-sheet var(--dur-base) var(--ease-out); }
+    @keyframes q-sheet { from { transform: translateY(24px); opacity: 0; } }
+    #more-sheet::backdrop { background: rgb(13 17 23 / 0.45); }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+  <p class="bg-ink px-4 py-1.5 text-center text-[12px] text-paper">Концепт редизайна qubitrino.ai · автор — Shoaib Ghulam · не официальный сайт Qubitrino</p>
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-surface focus:px-3 focus:py-2">К содержимому</a>
+
+  <div class="lg:grid lg:grid-cols-[232px_1fr]">
+    <!-- Sidebar (desktop) -->
+    <aside class="hidden lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen border-r border-line px-5 py-6">
+      <a href="#/home" class="self-start text-[17px] font-semibold tracking-tight">qubitrino<span class="text-action">.</span></a>
+      <nav aria-label="Разделы кабинета" class="mt-8">
+        <ul class="space-y-0.5 text-[14px]" id="side-nav"></ul>
+      </nav>
+      <div class="mt-auto border-t border-line pt-4 text-[13px]">
+        <p class="font-medium">Иванов И. И.</p>
+        <p class="num text-ink-3 text-[12px]">MT5 · 5000000001</p>
+      </div>
+    </aside>
+
+    <div class="min-w-0">
+      <!-- Top bar: context that is true on every screen -->
+      <header class="flex items-center gap-3 border-b border-line px-4 py-3 sm:px-6 lg:px-10">
+        <a href="#/home" class="mr-auto text-[17px] font-semibold tracking-tight lg:hidden">qubitrino<span class="text-action">.</span></a>
+        <p class="mr-auto hidden text-[13px] text-ink-2 lg:block">Счёт <span class="num">5000000001</span> · AlfaForexRU-Real · netting</p>
+        <p class="flex h-10 items-center gap-2 rounded-sm border border-line bg-surface px-3 text-[13px]">
+          <span class="hidden text-ink-2 sm:inline">Период</span>
+          <span class="num">24.02 — 30.03.2026</span>
+        </p>
+        <button type="button" id="theme-toggle" class="grid h-10 w-10 place-items-center rounded-sm border border-line bg-surface hover:border-ink-3 transition-colors" aria-label="Тёмная тема" aria-pressed="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        </button>
+      </header>
+
+      <main id="main" tabindex="-1" class="px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-14 lg:pt-8 max-w-[1180px] focus:outline-none">
+        <div id="view"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Bottom tab bar (mobile): four daily sections + «Ещё» -->
+  <nav aria-label="Разделы кабинета" class="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
+    <ul class="grid grid-cols-5 text-[11px]" id="tab-nav"></ul>
+  </nav>
+
+  <dialog id="more-sheet" aria-labelledby="more-h" class="fixed inset-x-0 bottom-0 top-auto m-0 w-full max-w-full rounded-t-[14px] border-t border-line bg-surface p-0 text-ink">
+    <div class="flex items-center justify-between px-4 pb-1 pt-4">
+      <h2 id="more-h" class="text-[17px] font-semibold">Ещё разделы</h2>
+      <button type="button" id="more-close" class="grid h-10 w-10 place-items-center rounded-sm text-ink-2 hover:bg-sunken" aria-label="Закрыть"></button>
+    </div>
+    <ul id="more-nav" class="px-2 pb-[calc(16px+env(safe-area-inset-bottom))] text-[15px]"></ul>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
