@@ -27,6 +27,7 @@ export const UTIL_ICONS = Object.freeze({
   moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z",
   ai: "M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z",
   copy: "M8 8h12v12H8zM4 16V4h12",
+  more: "M5 12h.01M12 12h.01M19 12h.01",
 });
 
 const NAMES = Object.freeze({
@@ -34,7 +35,7 @@ const NAMES = Object.freeze({
   mark: "Отметка дня", week: "Неделя", reports: "Отчёты",
   plus: "Добавить", close: "Закрыть", "chevron-down": "Раскрыть", search: "Поиск",
   info: "Информация", alert: "Ошибка", check: "Готово", download: "Скачать",
-  print: "Печать", moon: "Тема", ai: "ИИ-разбор", copy: "Копировать",
+  print: "Печать", moon: "Тема", ai: "ИИ-разбор", copy: "Копировать", more: "Ещё",
 });
 
 const ALL = Object.freeze({ ...NAV_ICONS, ...UTIL_ICONS });

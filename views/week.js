@@ -1,6 +1,7 @@
 /* «Неделя» — week-by-week review (ISO weeks): days kept/broken, trades, result, one takeaway. */
-import { DAYS, TODAY, isoWeek, formatDate, formatMoney } from "../data.js";
+import { TODAY, isoWeek, formatDate, formatMoney } from "../data.js";
 import { el, pageHead, swatch, tradesWord, daysWord, plural } from "./dom.js";
+import { currentDays } from "./rule-kinds.js";
 
 const WEEKDAYS = Object.freeze(["пн", "вт", "ср", "чт", "пт"]);
 const DAY_MS = 86400000;
@@ -9,16 +10,27 @@ const addDays = (iso, n) => new Date(new Date(`${iso}T12:00:00Z`).getTime() + n 
 const short = (iso) => { const { day, month } = formatDate(iso); return `${day} ${month}`; };
 const sumPnl = (days) => days.reduce((s, d) => s + d.pnl, 0);
 
+/** Weeks keyed by their Monday (ISO string — safe across year boundaries), newest first */
 function groupWeeks(days) {
-  const map = days.reduce((acc, day) => {
+  const byMonday = new Map();
+  days.forEach((day) => {
     const { week, monday } = isoWeek(day.date);
-    const prev = acc.get(week) ?? { week, monday, days: [] };
-    return new Map(acc).set(week, { ...prev, days: [...prev.days, day] });
-  }, new Map());
-  return [...map.values()].sort((a, b) => b.week - a.week);
+    const prev = byMonday.get(monday) ?? { week, monday, days: [] };
+    byMonday.set(monday, { ...prev, days: [...prev.days, day] });
+  });
+  return [...byMonday.values()].sort((a, b) => (a.monday < b.monday ? 1 : -1));
 }
 
-function takeaway(days) {
+const brokenNames = (day) => day.brokenRules.map((r) => r.label.toLowerCase()).join("; ");
+
+function singleDayText(day, isCurrent) {
+  if (day.broken.length) return `Единственный торговый день — с нарушениями: ${brokenNames(day)}. ${tradesWord(day.trades)}, ${formatMoney(day.pnl)}.`;
+  const kept = `${tradesWord(day.trades)}, правила соблюдены`;
+  return isCurrent ? `Неделя только началась: ${kept}. Итог — в пятницу.` : `Единственный торговый день: ${kept}, ${formatMoney(day.pnl)}.`;
+}
+
+function takeaway(days, isCurrent) {
+  if (days.length === 1) return singleDayText(days[0], isCurrent);
   const broken = days.filter((d) => d.broken.length);
   const total = sumPnl(days);
   if (!broken.length) {
@@ -64,7 +76,7 @@ function weekRow({ week, monday, days }, isCurrent) {
   },
     el("div", {},
       el("h2", { class: "flex items-center gap-2 text-[15px] font-semibold" }, `Неделя ${week}`,
-        isCurrent ? el("span", { class: "rounded-sm bg-action/10 px-1.5 py-0.5 text-[12px] font-medium text-action" }, "текущая") : null),
+        isCurrent ? el("span", { class: "rounded-sm bg-action/10 px-1.5 py-0.5 text-[12px] font-medium text-ink" }, "текущая") : null),
       el("p", { class: "num mt-0.5 text-[13px] text-ink-2" }, `${short(monday)} — ${short(addDays(monday, 4))}`)),
     weekSlots(monday, days),
     el("div", { class: "min-w-0" },
@@ -72,9 +84,7 @@ function weekRow({ week, monday, days }, isCurrent) {
         stat("Сделок", String(trades)),
         stat("Результат", formatMoney(total), total < 0 ? "text-loss" : "text-gain"),
         stat("По правилам", `${kept} из ${days.length}`)),
-      el("p", { class: "mt-3 max-w-[70ch] text-[14px] leading-relaxed" }, isCurrent && days.length === 1
-        ? `Неделя только началась: ${tradesWord(days[0].trades)}, правила соблюдены. Итог — в пятницу.`
-        : takeaway(days))));
+      el("p", { class: "mt-3 max-w-[70ch] text-[14px] leading-relaxed" }, takeaway(days, isCurrent))));
 }
 
 function legendRow() {
@@ -86,13 +96,13 @@ function legendRow() {
 }
 
 function render(root) {
-  const weeks = groupWeeks(DAYS);
-  const current = isoWeek(TODAY).week;
+  const weeks = groupWeeks(currentDays());
+  const current = isoWeek(TODAY).monday;
   root.append(
     pageHead("Обзор по неделям", "Неделя", `${weeks.length} ${plural(weeks.length, "неделя", "недели", "недель")} с торговлей, новые сверху. Неделя — пн–пт по ISO; выходные в отчёте пустые.`),
     legendRow(),
     el("ol", { class: "mt-4 divide-y divide-line overflow-hidden rounded-md border border-line", "aria-label": "Недели периода" },
-      weeks.map((w) => weekRow(w, w.week === current))));
+      weeks.map((w) => weekRow(w, w.monday === current))));
 }
 
 export default Object.freeze({ title: "Неделя", render });

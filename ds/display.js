@@ -5,8 +5,9 @@
 import { el, serialize } from "./dom.js";
 import { DAYS, RULES, SUMMARY, formatDate, formatMoney } from "../data.js";
 
-const RULE_SHORT = Object.freeze({ "max-trades": "> 10 сделок", "max-loss": "убыток > 2 000 ₽" });
+const RULE_SHORT = Object.freeze({ "max-trades": "> 10 сделок", "max-loss": "убыток > 2 000 ₽" });
 const STRIP_MAX_PX = 104;
+const dayPnl = (iso) => DAYS.find((d) => d.date === iso)?.pnl ?? 0;
 const STRIP_MIN_PX = 12;
 
 function plural(n, one, few, many) {
@@ -145,13 +146,13 @@ export function tableSpec() {
       el("th", { scope: "col", class: "px-4 py-3 font-medium" }, "Правила")));
   const table = el("table", { class: "w-full min-w-[520px] text-[14px]" },
     el("caption", { class: "sr-only" }, "Результат по дням"), head, el("tbody", {}, rows));
-  const wrap = el("div", { class: "overflow-x-auto rounded-md border border-line bg-surface", role: "region", tabindex: "0", "aria-label": "По дням" }, table);
+  const wrap = el("div", { class: "relative overflow-x-auto rounded-md border border-line bg-surface", role: "region", tabindex: "0", "aria-label": "По дням" }, table);
   return {
     id: "cmp-table", title: "Таблица", stage: "plain",
     lede: "Числа — по правому краю и моноширинные, чтобы разряды стояли столбиком. Текст — по левому. Шапка — микро-метка ink-2.",
     demo: wrap,
     notes: [
-      "2 марта: +/− и цвет — про деньги, метка справа — про поведение. 12 марта: +3 322 ₽, но правило нарушено.",
+      `2 марта: +/− и цвет — про деньги, метка справа — про поведение. 12 марта: ${formatMoney(dayPnl("2026-03-12"))}, но правило нарушено.`,
       "Широкая таблица прокручивается внутри обёртки с role=\"region\" и tabindex — страница не уезжает вбок.",
     ],
     snippet: serialize(el("div", { class: wrap.getAttribute("class") },

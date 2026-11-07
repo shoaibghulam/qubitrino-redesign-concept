@@ -1,11 +1,23 @@
 /* Tiny DOM helpers — every node is built with createElement, never innerHTML. */
 
-/** el("p", { class: "x" }, "text", child) */
+/** el("p", { class: "x" }, "text", child) — null/undefined/false attributes and children are skipped */
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
-  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
-  children.flat().forEach((child) => node.append(child));
+  Object.entries(attrs).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === false) return;
+    node.setAttribute(key, value === true ? "" : String(value));
+  });
+  children.flat().forEach((child) => {
+    if (child !== null && child !== undefined && child !== false) node.append(child);
+  });
   return node;
+}
+
+export const NBSP = " ";
+
+/** Loss share as "97 %" with a non-breaking space; "—" when there is nothing to divide. */
+export function formatShare(share) {
+  return share === null ? "—" : `${share}${NBSP}%`;
 }
 
 /** Set text on an element by id; silently skipping would hide a broken template, so fail loudly. */

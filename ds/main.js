@@ -53,6 +53,15 @@ async function renderTokens() {
 
 /* ---------- Table of contents ---------- */
 
+/** Move focus to the target's heading so keyboard users continue from where the link took them */
+function focusTarget(hash) {
+  const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+  const heading = target?.querySelector("h2, h3") ?? target;
+  if (!heading) return;
+  if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+  heading.focus({ preventScroll: true });
+}
+
 function initMobileToc() {
   const list = byId("toc").cloneNode(true);
   list.removeAttribute("id");
@@ -60,31 +69,50 @@ function initMobileToc() {
   const details = byId("toc-mobile");
   details.append(el("nav", { "aria-label": "Содержание", class: "max-h-[70vh] overflow-y-auto border-t border-line px-4 py-3" }, list));
   details.addEventListener("click", (event) => {
-    if (event.target.closest("a")) details.removeAttribute("open");
+    const link = event.target.closest("a[href^='#']");
+    if (!link) return;
+    details.removeAttribute("open");
+    // The focused link disappears with the closed panel — hand focus to the section instead of <body>
+    requestAnimationFrame(() => focusTarget(link.getAttribute("href")));
   });
 }
 
+/** Of the sections inside the reading band, the innermost one that starts highest */
+function pickCurrent(visible) {
+  const leaves = [...visible].filter((n) => ![...visible].some((m) => m !== n && n.contains(m)));
+  leaves.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+  return leaves[0] ?? null;
+}
+
 function initScrollSpy() {
-  const links = [...document.querySelectorAll("#toc a[href^='#']")];
+  const links = [...document.querySelectorAll("#toc a[href^='#'], #toc-mobile a[href^='#']")];
   const setCurrent = (id) => links.forEach((a) => {
-    if (a.getAttribute("href") === `#${id}`) a.setAttribute("aria-current", "true");
+    if (a.getAttribute("href") === `#${id}`) a.setAttribute("aria-current", "location");
     else a.removeAttribute("aria-current");
   });
+  const visible = new Set();
   const observer = new IntersectionObserver((entries) => {
-    entries.filter((e) => e.isIntersecting).forEach((e) => setCurrent(e.target.id));
+    entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
+    const current = pickCurrent(visible);
+    if (current) setCurrent(current.id);
   }, { rootMargin: "-20% 0px -70% 0px" });
   document.querySelectorAll("main section[id], main .ds-cmp[id]").forEach((s) => observer.observe(s));
 }
 
 /* ---------- Theme ---------- */
 
+const currentTheme = (root) => root.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
 function initTheme() {
   const root = document.documentElement;
-  document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
+  const toggles = [...document.querySelectorAll("[data-theme-toggle]")];
+  const sync = () => toggles.forEach((btn) => btn.setAttribute("aria-pressed", String(currentTheme(root) === "dark")));
+  sync();
+  toggles.forEach((btn) => {
     btn.addEventListener("click", () => {
-      const current = root.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      const next = current === "dark" ? "light" : "dark";
+      const next = currentTheme(root) === "dark" ? "light" : "dark";
       root.dataset.theme = next;
+      sync();
       try { localStorage.setItem("q-theme", next); } catch (error) { /* storage blocked — theme lasts this visit only */ }
     });
   });

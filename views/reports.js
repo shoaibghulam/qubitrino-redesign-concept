@@ -24,6 +24,8 @@ function skeleton() {
     el("div", { class: "mt-4 flex items-end gap-1" }, [10, 26, 14, 30, 8, 18, 22].map((h) => el("div", { class: "skeleton w-3", style: `height:${h}px` }))));
 }
 
+const reportHref = ({ from, to, type }) => `report.html?${new URLSearchParams({ from, to, type })}`;
+
 function readyCard(report) {
   const t = TYPES[report.type];
   return el("li", { class: `rounded-md border bg-surface p-4 ${t.ai ? "border-ai/40" : "border-line"}` },
@@ -32,14 +34,14 @@ function readyCard(report) {
     el("p", { class: "mt-1 text-[13px] text-ink-2" },
       `${daysWord(report.days)} · ${tradesWord(report.trades)} · `, el("span", { class: `num ${report.pnl < 0 ? "text-loss" : "text-gain"}` }, formatMoney(report.pnl, { decimals: 2 }))),
     el("div", { class: "mt-3 flex flex-wrap items-center gap-3" },
-      el("a", { href: "report.html", class: `${BTN_PRIMARY} h-9 px-3 text-[13px]` }, "Открыть отчёт"),
+      el("a", { href: reportHref(report), class: `${BTN_PRIMARY} h-9 px-3 text-[13px]` }, "Открыть отчёт"),
       el("span", { class: "text-[12px] text-ink-3" }, "A4 · печать в PDF")));
 }
 
 function errorCard(range, onFix) {
   const fix = el("button", { type: "button", class: `${BTN_QUIET} mt-3 h-9 text-[13px]` }, "Изменить период");
   fix.addEventListener("click", onFix);
-  return el("div", { role: "alert", class: "rounded-md border border-loss/50 bg-loss/[0.05] p-4" },
+  return el("div", { role: "alert", "data-error-card": "", class: "rounded-md border border-loss/50 bg-loss/[0.05] p-4" },
     el("p", { class: "flex items-center gap-2 text-[15px] font-semibold" }, icon("alert", 18), "Не удалось сформировать отчёт"),
     el("p", { class: "mt-1 text-[13px] leading-relaxed text-ink-2" }, `С ${short(range.from)} по ${short(range.to)} нет ни одной сделки — отчёт не из чего собрать. Выберите период, в котором вы торговали.`),
     fix);
@@ -51,39 +53,46 @@ function listView(extra) {
   return items.length ? el("ol", { class: "grid gap-3", "aria-label": "Готовые отчёты" }, items) : emptyState();
 }
 
-function render(root) {
-  const form = buildForm();
-  const status = el("p", { role: "status", class: "sr-only" });
-  const results = el("div", { class: "mt-3", "aria-live": "off" }, listView());
-  const submit = el("button", { type: "submit", class: `${BTN_PRIMARY} h-12 px-6` }, "Сформировать");
-  const example = el("button", { type: "button", class: "h-10 text-[13px] text-ink-2 underline underline-offset-4 hover:text-ink" }, "Пример ошибки: период без сделок");
-  form.append(el("div", { class: "flex flex-wrap items-center gap-x-5 gap-y-2" }, submit, example));
-
+/** Builds a report for `range` with loading → ready (or error) states. Returns build(range). */
+function reportBuilder({ form, submit, results, status }) {
   const fail = (range) => {
     results.replaceChildren(errorCard(range, () => form.querySelector('input[name="from"]').focus()), listView());
     status.textContent = "Ошибка: в выбранном периоде нет сделок.";
   };
-
-  const build = (range) => {
+  const finish = (range, days) => {
+    // Money from the trades themselves so the card matches «Мои сделки» to the kopeck
+    const inRange = TRADES.filter((t) => t.close.slice(0, 10) >= range.from && t.close.slice(0, 10) <= range.to);
+    addReport({ ...range, id: Date.now(), days: days.length, trades: inRange.length, pnl: inRange.reduce((s, t) => s + t.profit, 0) });
+    submit.removeAttribute("aria-disabled");
+    pending = null;
+    results.removeAttribute("aria-busy");
+    results.replaceChildren(listView());
+    status.textContent = `Отчёт готов: ${TYPES[range.type].label}, ${short(range.from)} — ${short(range.to)}.`;
+  };
+  return (range) => {
     const days = daysIn(range);
     if (!days.length) return fail(range);
-    submit.disabled = true;
+    submit.setAttribute("aria-disabled", "true");
     results.setAttribute("aria-busy", "true");
     results.replaceChildren(el("ol", { class: "grid gap-3" }, skeleton(), ...getState().reports.map(readyCard)));
     status.textContent = "Формируем отчёт…";
-    pending = setTimeout(() => {
-      // Money from the trades themselves (incl. swap) so the card matches «Мои сделки» to the kopeck
-      const inRange = TRADES.filter((t) => t.close.slice(0, 10) >= range.from && t.close.slice(0, 10) <= range.to);
-      addReport({ ...range, id: Date.now(), days: days.length, trades: inRange.length, pnl: inRange.reduce((s, t) => s + t.profit, 0) });
-      submit.disabled = false;
-      results.removeAttribute("aria-busy");
-      results.replaceChildren(listView());
-      status.textContent = `Отчёт готов: ${TYPES[range.type].label}, ${short(range.from)} — ${short(range.to)}.`;
-    }, LOADING_MS);
+    pending = setTimeout(() => finish(range, days), LOADING_MS);
   };
+}
+
+function render(root) {
+  const form = buildForm();
+  const status = el("p", { role: "status", class: "sr-only" });
+  const results = el("div", { class: "mt-3", "aria-live": "off" }, listView());
+  // aria-disabled instead of disabled: a disabled button drops keyboard focus to <body>
+  const submit = el("button", { type: "submit", class: `${BTN_PRIMARY} h-12 px-6 aria-disabled:cursor-progress aria-disabled:opacity-50` }, "Сформировать");
+  const example = el("button", { type: "button", class: "h-10 text-[13px] text-ink-2 underline underline-offset-4 hover:text-ink" }, "Пример ошибки: период без сделок");
+  form.append(el("div", { class: "flex flex-wrap items-center gap-x-5 gap-y-2" }, submit, example));
+  const build = reportBuilder({ form, submit, results, status });
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (pending) return;
     const value = readForm(form);
     setPeriodError(form, value.error);
     if (value.error) return form.querySelector('input[name="from"]').focus();
@@ -91,6 +100,10 @@ function render(root) {
     build({ ...value, from: value.from < DAYS[0].date ? DAYS[0].date : value.from, to: value.to > DAYS.at(-1).date ? DAYS.at(-1).date : value.to });
   });
   example.addEventListener("click", () => { fillEmptyExample(form); submit.focus(); });
+  // Any change to the period or type makes an earlier error stale
+  const clearError = () => { if (results.querySelector("[data-error-card]")) results.replaceChildren(listView()); };
+  form.addEventListener("change", clearError);
+  form.addEventListener("input", clearError);
 
   root.append(
     pageHead("PDF для себя или наставника", "Отчёты", "Отчёт собирается из тех же данных, что и кабинет: сделки MT5, правила, отметки дней."),

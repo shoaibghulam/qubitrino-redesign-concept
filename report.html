@@ -8,9 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="tokens.css">
   <style>
-    /* Print is always light: dark theme never reaches the printer */
+    /* Print is always light by design: data-theme is fixed above and ?theme / the saved theme
+       are deliberately ignored — dark theme never reaches the printer */
     :root { --c-paper: 255 255 255; }
 
     @page {
@@ -28,6 +30,9 @@
       font-size: 10pt; line-height: 1.45;
     }
     .toolbar { max-width: 210mm; margin: 24px auto 0; display: flex; gap: 12px; align-items: center; font-size: 14px; padding: 0 4px; }
+    .skip { position: absolute; left: -9999px; }
+    .sheet:focus { outline: none; }
+    .skip:focus { left: 16px; top: 16px; z-index: 10; background: #fff; padding: 8px 12px; }
     .toolbar a { color: rgb(var(--c-ink-2)); }
     .toolbar button { height: 40px; padding: 0 16px; border: 0; border-radius: var(--radius-sm); background: rgb(var(--c-action)); color: #fff; font: 500 14px var(--font-ui); cursor: pointer; }
 
@@ -60,6 +65,7 @@
     .kpis div { padding: 3mm 0; border-bottom: 0.5pt solid rgb(var(--c-line)); }
     .kpis dt { font-size: 8pt; color: rgb(var(--c-ink-2)); }
     .kpis dd { font-size: 12pt; margin-top: 0.5mm; }
+    caption { text-align: left; font-size: 8pt; color: rgb(var(--c-ink-2)); padding-bottom: 2mm; }
     .note { margin-top: 8mm; font-size: 8pt; color: rgb(var(--c-ink-2)); break-inside: avoid; }
 
     @media print {
@@ -79,16 +85,17 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#report">К отчёту</a>
   <div class="toolbar">
     <a href="index.html">← Мои цифры</a>
     <span class="muted" style="margin-left:auto">A4 · книжная</span>
     <button type="button" id="print">Печать / PDF</button>
   </div>
 
-  <main class="sheet">
+  <main class="sheet" id="report" tabindex="-1">
     <header>
-      <p class="muted" style="font-size:9pt">qubitrino<span style="color:rgb(var(--c-action))">.</span> · отчёт о дисциплине</p>
-      <h1>Правила и результат<br>24 февраля — 30 марта 2026</h1>
+      <p class="muted" style="font-size:9pt">qubitrino<span style="color:rgb(var(--c-action))">.</span> · <span id="report-kind">отчёт о дисциплине</span></p>
+      <h1 id="report-title">Правила и результат<br>24 февраля — 30 марта 2026</h1>
       <dl class="meta">
         <div><dt>Трейдер</dt><dd>Иванов И. И.</dd></div>
         <div><dt>Счёт</dt><dd class="num">5000000001</dd></div>
@@ -115,9 +122,10 @@
     <dl class="kpis" id="kpis"></dl>
 
     <h2>По дням</h2>
-    <div class="table-wrap">
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Таблица по дням, прокручивается по горизонтали">
       <table>
-        <thead><tr><th>День</th><th class="r">Сделки</th><th class="r">Прибыльные</th><th class="r">Результат</th><th>Нарушенные правила</th></tr></thead>
+        <caption>Результат и нарушенные правила по каждому торговому дню периода</caption>
+        <thead><tr><th scope="col">День</th><th scope="col" class="r">Сделки</th><th scope="col" class="r">Прибыльные</th><th scope="col" class="r">Результат</th><th scope="col">Нарушенные правила</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>

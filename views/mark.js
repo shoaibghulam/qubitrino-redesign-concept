@@ -1,14 +1,16 @@
 /* «Отметка дня» — a one-minute daily check-in: plan, state, note. */
-import { DAYS, TODAY, formatDate, formatMoney } from "../data.js";
+import { TODAY, formatDate, formatMoney } from "../data.js";
 import { el, icon, pageHead, swatch, tradesWord, BTN_PRIMARY, BTN_QUIET } from "./dom.js";
 import { getState, saveMark } from "./store.js";
 import { PLAN, MOODS, historySection } from "./mark-history.js";
+import { currentDays } from "./rule-kinds.js";
 
 const NOTE_MAX = 500;
+const NOTE_WARN = 50; // counter turns into «осталось N» below this many characters
+const VALIDATED = Object.freeze(["plan", "mood"]);
 const CARD = "relative flex min-h-[72px] cursor-pointer flex-col justify-center rounded-md border border-line bg-surface px-4 py-3 hover:border-ink-3 has-[:checked]:border-ink has-[:checked]:shadow-[inset_0_0_0_1px_rgb(var(--c-ink))] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-action has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-paper";
 const STEP = "flex h-12 cursor-pointer items-center justify-center rounded-sm border border-line bg-surface text-[15px] hover:border-ink-3 has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-paper has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-action has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-paper";
 
-const today = DAYS.find((d) => d.date === TODAY);
 const todayLabel = () => { const { day, month, weekday } = formatDate(TODAY); return `${weekday}, ${day} ${month}`; };
 
 function legend(text, id) {
@@ -16,7 +18,7 @@ function legend(text, id) {
 }
 
 function errorLine(id) {
-  return el("p", { id, class: "mt-2 hidden items-center gap-1.5 text-[13px] font-medium text-loss" }, icon("alert", 16), el("span"));
+  return el("p", { id, role: "alert", class: "mt-2 hidden items-center gap-1.5 text-[13px] font-medium text-loss" }, icon("alert", 16), el("span"));
 }
 
 function planFieldset(saved) {
@@ -52,8 +54,10 @@ function noteField(saved) {
   area.value = saved?.note ?? "";
   const sync = () => {
     const left = NOTE_MAX - area.value.length;
-    counter.textContent = `${area.value.length} / ${NOTE_MAX}`;
-    counter.classList.toggle("text-broken", left < 50);
+    const warn = left < NOTE_WARN;
+    counter.textContent = warn ? `осталось ${left}` : `${area.value.length} / ${NOTE_MAX}`;
+    counter.classList.toggle("text-loss", warn);
+    counter.classList.toggle("font-medium", warn);
   };
   area.addEventListener("input", sync);
   sync();
@@ -66,6 +70,7 @@ function noteField(saved) {
 
 function showError(form, id, message) {
   const node = form.querySelector(`#${id}`);
+  if (!node) return;
   node.lastChild.textContent = message ?? "";
   node.classList.toggle("hidden", !message);
   node.classList.toggle("flex", Boolean(message));
@@ -76,9 +81,9 @@ function readForm(form) {
   return { plan: data.get("plan"), mood: Number(data.get("mood")) || null, note: String(data.get("note") ?? "").trim() };
 }
 
-function dayFacts() {
+function dayFacts(today) {
   const broken = today.broken.length > 0;
-  return el("aside", { "aria-label": "Факты дня из отчёта", class: "-order-1 self-start lg:order-none rounded-md bg-sunken px-5 py-4 text-[14px]" },
+  return el("aside", { "aria-label": "Факты дня из отчёта", class: "self-start rounded-md lg:order-last bg-sunken px-5 py-4 text-[14px]" },
     el("p", { class: "text-[12px] font-medium uppercase tracking-[0.08em] text-ink-2" }, "Факты дня"),
     el("p", { class: `num mt-2 text-[28px] font-medium leading-none ${today.pnl < 0 ? "text-loss" : "text-gain"}` }, formatMoney(today.pnl)),
     el("p", { class: "mt-2 text-ink-2" }, `${tradesWord(today.trades)}, прибыльных ${today.wins}`),
@@ -104,7 +109,9 @@ function buildForm(onSaved) {
   const form = el("form", { novalidate: true, "aria-label": "Отметка дня", class: "grid gap-8" },
     planFieldset(saved), moodFieldset(saved), noteField(saved),
     el("div", {}, el("button", { type: "submit", class: `${BTN_PRIMARY} h-12 px-6` }, "Сохранить отметку")));
-  form.addEventListener("change", (e) => showError(form, `${e.target.name}-err`, null));
+  form.addEventListener("change", (e) => {
+    if (VALIDATED.includes(e.target.name)) showError(form, `${e.target.name}-err`, null);
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const value = readForm(form);
@@ -121,14 +128,17 @@ function buildForm(onSaved) {
 function render(root) {
   const slot = el("div", { class: "min-w-0" });
   const showForm = () => { slot.replaceChildren(buildForm(showDone)); };
-  const editMark = () => { showForm(); slot.querySelector("input:checked, input")?.focus(); };
+  const editMark = () => {
+    showForm();
+    (slot.querySelector("input:checked") ?? slot.querySelector("input"))?.focus();
+  };
   function showDone() {
     slot.replaceChildren(successState(getState().todayMark, editMark));
     slot.querySelector("#done-h")?.focus();
   }
   root.append(
     pageHead(`Сегодня · ${todayLabel()}`, "Отметка дня", "Минута в конце дня. Из отметок складывается недельный обзор и сводка ИИ."),
-    el("div", { class: "mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12" }, slot, dayFacts()),
+    el("div", { class: "mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12" }, dayFacts(currentDays().find((d) => d.date === TODAY)), slot),
     historySection());
   if (getState().todayMark) slot.replaceChildren(successState(getState().todayMark, editMark));
   else showForm();

@@ -3,19 +3,23 @@
   computed live from data.js so the table cannot disagree with the product.
 */
 import { el } from "./dom.js";
+import { brokenShare } from "../landing/hero.js";
+import { daysWord } from "../landing/dom.js";
 import { DAYS, SUMMARY, disciplineSplit, formatDate, formatMoney } from "../data.js";
 
 const NBSP = " ";
 const MINUS = "−";
 
 function scaleSpecs() {
-  const { brokenPnl, keptPnl, broken } = disciplineSplit(DAYS);
-  const share = Math.round((brokenPnl / (brokenPnl + keptPnl)) * 100);
+  const split = disciplineSplit(DAYS);
+  const { brokenPnl, broken } = split;
+  const share = brokenShare(split);
+  const shareText = share === null ? "—" : `${share}${NBSP}%`;
   return [
     { px: 44, lh: "1", weight: 500, cls: "num tracking-tight", role: "Число-герой", use: "итог периода, одна цифра на экран",
       text: formatMoney(SUMMARY.netProfit, { decimals: 2 }) },
     { px: 28, lh: "1.2", weight: 600, cls: "tracking-tight", role: "Вывод", use: "главная мысль экрана, ≤ 2 строк",
-      text: `${share}${NBSP}% убытка — ${broken.length} дней с нарушениями: ${formatMoney(brokenPnl)}` },
+      text: `${shareText} убытка — ${daysWord(broken.length)} с нарушениями: ${formatMoney(brokenPnl)}` },
     { px: 22, lh: "1.25", weight: 600, cls: "tracking-tight", role: "Подзаголовок", use: "вывод на мобильном, заголовок модала",
       text: "2 марта: 43 сделки при лимите 10" },
     { px: 17, lh: "1.35", weight: 600, cls: "", role: "Заголовок секции", use: "h2 внутри кабинета",
@@ -46,12 +50,13 @@ function scaleRow(spec) {
 
 function numberRules() {
   const d = formatDate("2026-03-02");
+  const dayPnl = DAYS.find((x) => x.date === "2026-03-12")?.pnl ?? 0;
   return [
     ["formatMoney(-48854.86, { decimals: 2 })", formatMoney(SUMMARY.netProfit, { decimals: 2 }), "Итог периода — с копейками. Минус — U+2212, не дефис."],
-    ["formatMoney(3322)", formatMoney(3322), "Результат дня — целые рубли, плюс пишем явно."],
+    [`formatMoney(${dayPnl})`, formatMoney(dayPnl), "Результат дня — целые рубли, плюс пишем явно."],
     ["formatMoney(-750.54)", formatMoney(SUMMARY.avgLoss), "Средние округляем до рубля: копейки в среднем — шум."],
     ["formatMoney(0, { sign: false })", formatMoney(0, { sign: false }), "Ноль — без знака: он не прибыль и не убыток."],
-    ["winRate.toLocaleString(\"ru-RU\") + \" %\"", `${SUMMARY.winRate.toLocaleString("ru-RU")}${NBSP}%`, "Десятичная запятая; неразрывный пробел перед %."],
+    ["winRate.toLocaleString(\"ru-RU\") + \"\u00A0%\"", `${SUMMARY.winRate.toLocaleString("ru-RU")}${NBSP}%`, "Десятичная запятая; неразрывный пробел перед %."],
     ["profitFactor.toLocaleString(\"ru-RU\")", SUMMARY.profitFactor.toLocaleString("ru-RU"), "Коэффициенты — без единиц, два знака."],
     ["formatDate(\"2026-03-02\")", `${d.day}${NBSP}${d.month}, ${d.weekday}`, "Дата в тексте — «2 мар», в таблицах периода — 24.02 — 30.03.2026."],
   ];
@@ -74,7 +79,7 @@ function rulesTable() {
     el("td", { class: "whitespace-nowrap px-3 py-3 text-right text-[15px] font-medium sm:px-4" }, el("span", { class: "num" }, result)),
     el("td", { class: "whitespace-nowrap px-3 py-3 text-right text-[15px] sm:px-4", "aria-hidden": "true" }, revealed(result)),
     el("td", { class: "px-3 py-3 text-[13px] leading-snug text-ink-2 sm:px-4" }, rule)));
-  return el("div", { class: "mt-5 overflow-x-auto rounded-md border border-line bg-surface", role: "region", tabindex: "0", "aria-label": "Правила форматирования чисел" },
+  return el("div", { class: "relative mt-5 overflow-x-auto rounded-md border border-line bg-surface", role: "region", tabindex: "0", "aria-label": "Правила форматирования чисел" },
     el("table", { class: "w-full min-w-[860px] text-left" },
       el("caption", { class: "sr-only" }, "Примеры formatMoney и formatDate из data.js с результатом и правилом"),
       el("thead", { class: "text-[11px] uppercase tracking-[0.08em] text-ink-2" },

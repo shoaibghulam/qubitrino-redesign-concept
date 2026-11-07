@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="tokens.css">
   <script>
     // Apply the saved theme before first paint to avoid a flash.
@@ -68,7 +69,7 @@
           <li><a class="rounded-sm px-3 py-2 hover:text-ink transition-colors" href="#faq">Вопросы</a></li>
         </ul>
       </nav>
-      <button type="button" id="theme-toggle" class="grid h-10 w-10 place-items-center rounded-sm text-ink-2 hover:bg-sunken hover:text-ink transition-colors md:ml-3" aria-label="Переключить тему">
+      <button type="button" id="theme-toggle" class="grid h-10 w-10 place-items-center rounded-sm text-ink-2 hover:bg-sunken hover:text-ink transition-colors md:ml-3" aria-label="Тёмная тема" aria-pressed="false">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
       </button>
       <a href="index.html" class="hidden h-10 items-center rounded-sm px-3 text-[14px] font-medium hover:bg-sunken transition-colors sm:inline-flex">Войти</a>
@@ -122,18 +123,18 @@
           <dl class="mt-5 grid grid-cols-2 divide-x divide-line border-t border-line">
             <div class="px-5 py-4">
               <dt class="text-[13px] text-ink-2">Дни по правилам</dt>
-              <dd class="num mt-1 text-[24px] font-medium leading-tight tracking-tight sm:text-[30px]" id="hero-kept"></dd>
+              <dd class="num mt-1 text-[20px] min-[360px]:text-[24px] font-medium leading-tight tracking-tight sm:text-[30px]" id="hero-kept"></dd>
               <dd class="mt-1 text-[12px] text-ink-3" id="hero-kept-n"></dd>
             </div>
             <div class="px-5 py-4">
               <dt class="text-[13px] text-ink-2">Дни с нарушениями</dt>
-              <dd class="num mt-1 text-[24px] font-medium leading-tight tracking-tight text-loss sm:text-[30px]" id="hero-broken"></dd>
+              <dd class="num mt-1 text-[20px] min-[360px]:text-[24px] font-medium leading-tight tracking-tight text-loss sm:text-[30px]" id="hero-broken"></dd>
               <dd class="mt-1 text-[12px] text-ink-3" id="hero-broken-n"></dd>
             </div>
           </dl>
           <figcaption id="hero-fig-cap" class="border-t border-line px-5 py-4">
             <div class="flex h-2 overflow-hidden rounded-full bg-sunken" aria-hidden="true"><span class="hatch block h-full" id="hero-share-bar"></span></div>
-            <p class="mt-3 text-[14px] leading-snug"><span class="num font-semibold" id="hero-share"></span> убытка периода — из дней, когда правила были нарушены.</p>
+            <p class="mt-3 text-[14px] leading-snug">На дни, когда правила были нарушены, пришлось <span class="num font-semibold" id="hero-share"></span> убытка периода.</p>
           </figcaption>
         </figure>
       </div>
@@ -159,11 +160,11 @@
             <div class="flex items-baseline justify-between gap-4 py-3"><dt class="text-ink-2">Сделок</dt><dd class="num font-medium">43 <span class="text-ink-3">/ лимит 10</span></dd></div>
             <div class="flex items-baseline justify-between gap-4 py-3"><dt class="text-ink-2">Прибыльных</dt><dd class="num font-medium">4</dd></div>
             <div class="flex items-baseline justify-between gap-4 py-3"><dt class="text-ink-2">Результат дня</dt><dd class="num text-[22px] font-medium text-loss">−24&nbsp;594&nbsp;₽</dd></div>
-            <div class="flex items-baseline justify-between gap-4 py-3"><dt class="text-ink-2">Доля убытка за весь период</dt><dd class="num font-medium">≈ 50 %</dd></div>
+            <div class="flex items-baseline justify-between gap-4 py-3"><dt class="text-ink-2">Доля убытка за весь период</dt><dd class="num font-medium">≈ 50&nbsp;%</dd></div>
           </dl>
           <p class="mt-5 grid gap-4 border-t border-line pt-5 text-[14px] leading-relaxed sm:grid-cols-2">
-            <span><span class="block text-[12px] uppercase tracking-[0.06em] text-ink-3">В терминале</span>43 строки в истории и баланс ниже на 24 594 ₽.</span>
-            <span><span class="block text-[12px] uppercase tracking-[0.06em] text-ink-3">В Qubitrino</span>Один день, в который правила перестали работать, — и половина убытка двух месяцев.</span>
+            <span><span class="block text-[12px] uppercase tracking-[0.06em] text-ink-3">В терминале</span>43 строки в истории и баланс ниже на 24&nbsp;594&nbsp;₽.</span>
+            <span><span class="block text-[12px] uppercase tracking-[0.06em] text-ink-3">В Qubitrino</span>Один день, в который правила перестали работать, — и половина убытка за пять недель.</span>
           </p>
         </article>
       </div>
@@ -185,7 +186,7 @@
           <li class="border-t-2 border-ink pt-5">
             <span class="num text-[13px] text-ink-3">02</span>
             <h3 class="mt-2 text-[20px] font-semibold tracking-tight">Задайте правила</h3>
-            <p class="mt-3 text-[15px] leading-[1.6] text-ink-2">Два-три правила, которые вы и так себе обещали: «не больше 10 сделок в день», «дневной убыток не больше 2 000 ₽».</p>
+            <p class="mt-3 text-[15px] leading-[1.6] text-ink-2">Два-три правила, которые вы и так себе обещали: «не больше 10 сделок в день», «дневной убыток не больше 2&nbsp;000&nbsp;₽».</p>
           </li>
           <li class="border-t-2 border-ink pt-5">
             <span class="num text-[13px] text-ink-3">03</span>
@@ -205,7 +206,7 @@
           <article aria-labelledby="f-diary" class="bg-surface p-6 lg:col-span-7 lg:p-8">
             <h3 id="f-diary" class="text-[17px] font-semibold">Дневник сделок</h3>
             <p class="mt-2 max-w-[46ch] text-[14px] leading-relaxed text-ink-2">Сделки из отчёта собраны по дням. У каждого дня — результат, число сделок и отметка о правилах. Прибыльный день с нарушением выглядит как плохой день.</p>
-            <div class="mt-6 overflow-x-auto">
+            <div class="relative mt-6 overflow-x-auto">
               <table class="w-full min-w-[340px] text-[14px]">
                 <caption class="sr-only">Пример: три дня из дневника</caption>
                 <thead class="text-left text-[11px] uppercase tracking-[0.06em] text-ink-3"><tr class="border-b border-line"><th scope="col" class="py-2 font-medium">День</th><th scope="col" class="py-2 text-right font-medium">Сделки</th><th scope="col" class="py-2 text-right font-medium">Результат</th><th scope="col" class="py-2 pl-4 font-medium">Правила</th></tr></thead>
@@ -240,7 +241,7 @@
             <div class="flex gap-5">
               <div class="flex-1">
                 <h3 id="f-reports" class="text-[17px] font-semibold">Отчёты для печати</h3>
-                <p class="mt-2 text-[14px] leading-relaxed text-ink-2">PDF на А4 за любой период: для себя, наставника или проп-компании. Штриховка нарушений читается и в чёрно-белой печати.</p>
+                <p class="mt-2 text-[14px] leading-relaxed text-ink-2">PDF на A4 за любой период: для себя, наставника или проп-компании. Штриховка нарушений читается и в чёрно-белой печати.</p>
                 <a href="report.html" class="mt-4 inline-flex h-10 items-center gap-1.5 text-[14px] font-medium text-action hover:underline underline-offset-4">Открыть пример отчёта<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
               </div>
               <div class="a4 w-[104px] shrink-0 rotate-[2deg] rounded-[3px] border border-line bg-surface p-2.5 shadow-[0_12px_24px_-14px_rgb(var(--c-ink)/0.35)]" aria-hidden="true" id="a4-thumb"></div>
@@ -251,7 +252,7 @@
               <div>
                 <h3 id="f-ai" class="flex items-center gap-2 text-[17px] font-semibold">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-ai"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.5 6.5l2.5 2.5M15 15l2.5 2.5M17.5 6.5 15 9M9 15l-2.5 2.5"/></svg>
-                  AI-разбор
+                  ИИ-разбор
                 </h3>
                 <p class="mt-2 max-w-[44ch] text-[14px] leading-relaxed text-ink-2">Ищет закономерности, которые сложно заметить в таблице. Опирается только на ваши сделки и правила, торговых сигналов не даёт.</p>
               </div>
@@ -298,11 +299,11 @@
         <div class="divide-y divide-line border-y border-line lg:col-span-8">
           <details class="group">
             <summary class="flex min-h-[56px] items-center justify-between gap-4 py-4 text-[17px] font-medium">Кто видит мои загруженные отчёты?<svg class="faq-icon shrink-0 text-ink-3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p class="max-w-[62ch] pb-5 text-[15px] leading-[1.65] text-ink-2">Только вы. HTML-отчёт MT5 содержит историю сделок, имя и номер счёта — но не пароли и не доступ к торговле. Отчёт нужен, чтобы построить дневник; третьим лицам он не передаётся, а удалить его вместе с данными можно в любой момент.</p>
+            <p class="max-w-[62ch] pb-5 text-[15px] leading-[1.65] text-ink-2">HTML-отчёт MT5 содержит историю сделок, имя и номер счёта — но не пароли и не доступ к торговле. Политику хранения и удаления данных уточнит команда Qubitrino.</p>
           </details>
           <details class="group">
             <summary class="flex min-h-[56px] items-center justify-between gap-4 py-4 text-[17px] font-medium">Какие платформы поддерживаются?<svg class="faq-icon shrink-0 text-ink-3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p class="max-w-[62ch] pb-5 text-[15px] leading-[1.65] text-ink-2">Сейчас — MetaTrader 5, через HTML-отчёт из вкладки «История». Подключение к счёту не требуется. Другие форматы пока не поддерживаются.</p>
+            <p class="max-w-[62ch] pb-5 text-[15px] leading-[1.65] text-ink-2">Сейчас — MetaTrader 5, через HTML-отчёт из вкладки «История». Подключение к счёту не требуется.</p>
           </details>
           <details class="group">
             <summary class="flex min-h-[56px] items-center justify-between gap-4 py-4 text-[17px] font-medium">Что значит «альфа»?<svg class="faq-icon shrink-0 text-ink-3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
@@ -310,7 +311,7 @@
           </details>
           <details class="group">
             <summary class="flex min-h-[56px] items-center justify-between gap-4 py-4 text-[17px] font-medium">Сколько стоит доступ во время альфы?<svg class="faq-icon shrink-0 text-ink-3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
-            <p class="max-w-[62ch] pb-5 text-[15px] leading-[1.65] text-ink-2">Условия сообщим при открытии доступа — до того, как вы загрузите первый отчёт.</p>
+            <p class="max-w-[62ch] pb-5 text-[15px] leading-[1.65] text-ink-2">Условия альфа-доступа сообщает команда при подключении.</p>
           </details>
           <details class="group">
             <summary class="flex min-h-[56px] items-center justify-between gap-4 py-4 text-[17px] font-medium">Qubitrino подсказывает, когда входить в сделку?<svg class="faq-icon shrink-0 text-ink-3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
@@ -342,7 +343,7 @@
 
   <footer class="border-t border-line">
     <div class="mx-auto flex max-w-[1240px] flex-col gap-6 px-4 py-10 text-[13px] text-ink-2 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-10">
-      <p><span class="text-[15px] font-semibold text-ink">qubitrino<span class="text-action">.</span></span><span class="ml-3">© 2026 Кубитрино Технолоджис</span></p>
+      <p><span class="text-[15px] font-semibold text-ink">qubitrino<span class="text-action">.</span></span><span class="ml-3">© 2026 Qubitrino · концепт редизайна</span></p>
       <nav aria-label="Ссылки концепта">
         <ul class="flex flex-wrap gap-x-5 gap-y-1">
           <li><a class="inline-flex h-10 items-center hover:text-ink" href="index.html">Демо-кабинет</a></li>

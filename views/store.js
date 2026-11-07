@@ -32,10 +32,15 @@ export const setRule = (id, patch) => update((s) => ({
   rules: Object.freeze(s.rules.map((r) => (r.id === id ? Object.freeze({ ...r, ...patch }) : r))),
 }));
 
-export const addRule = (rule) => update((s) => ({
-  ...s,
-  rules: Object.freeze([...s.rules, Object.freeze({ ...rule, id: `r-${Date.now()}`, enabled: true })]),
-}));
+let ruleCounter = 0;
+
+/** Adds an enabled rule and returns its new id */
+export function addRule(rule) {
+  ruleCounter += 1;
+  const id = `r-${ruleCounter}`;
+  update((s) => ({ ...s, rules: Object.freeze([...s.rules, Object.freeze({ ...rule, id, enabled: true })]) }));
+  return id;
+}
 
 export const removeRule = (id) => update((s) => ({ ...s, rules: Object.freeze(s.rules.filter((r) => r.id !== id)) }));
 

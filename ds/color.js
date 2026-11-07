@@ -157,5 +157,5 @@ export function renderColor(container, tokens) {
 
   container.append(
     summaryLine(tokens),
-    el("div", { class: "mt-6 sm:overflow-x-auto" }, table));
+    el("div", { class: "relative mt-6 sm:overflow-x-auto" }, table));
 }

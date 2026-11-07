@@ -71,14 +71,19 @@ export function serialize(...nodes) {
 
 /* ---------- Code block with copy ---------- */
 
+const STATUS_MS = 2400;
+/** One reset timer per status node: a second click restarts it instead of stacking timers. */
+const statusTimers = new WeakMap();
+
 async function copyText(text, status) {
   try {
     await navigator.clipboard.writeText(text);
     status.textContent = "Скопировано";
   } catch (error) {
-    status.textContent = "Не удалось скопировать — выделите код вручную";
+    status.textContent = "Не удалось — выделите код вручную";
   }
-  setTimeout(() => { status.textContent = ""; }, 2400);
+  clearTimeout(statusTimers.get(status));
+  statusTimers.set(status, setTimeout(() => { status.textContent = ""; }, STATUS_MS));
 }
 
 /** A <pre><code> block whose text is set with textContent — never parsed as HTML */
@@ -92,11 +97,11 @@ export function codeBlock(text, { label = "HTML", open = false, summary = "Ко�
   }, "Копировать");
   copy.addEventListener("click", () => copyText(text, status));
 
-  const head = el("div", { class: "flex items-center justify-between gap-3 border-b border-line pl-4 pr-1" },
-    el("span", { class: "text-[12px] font-medium uppercase tracking-[0.08em] text-ink-2" }, label),
-    el("span", { class: "flex items-center gap-2" }, status, copy));
+  const head = el("div", { class: "flex flex-wrap items-center justify-between gap-x-3 border-b border-line pl-4 pr-1" },
+    el("span", { class: "min-w-0 break-words py-2 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-2" }, label),
+    el("span", { class: "ml-auto flex min-w-0 items-center gap-2" }, status, copy));
   const body = el("div", { class: "rounded-sm border border-line bg-sunken/60" },
-    head, el("pre", { class: "max-h-[420px] overflow-auto p-4", tabindex: "0", "aria-label": `Код: ${label}` }, code));
+    head, el("pre", { class: "relative max-h-[420px] overflow-auto p-4", tabindex: "0", "aria-label": `Код: ${label}` }, code));
 
   if (summary === null) return body;
   const details = el("details", { class: "group mt-4", ...(open ? { open: true } : {}) },

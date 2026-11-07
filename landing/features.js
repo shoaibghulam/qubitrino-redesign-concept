@@ -1,11 +1,11 @@
 /* Feature bento: small, real fragments built from data.js. */
 import { DAYS, RULES, SUMMARY, formatDate, formatMoney } from "../data.js";
-import { el, byId, setText, daysWord, barHeight } from "./dom.js";
+import { el, byId, setText, daysWord, tradesWord, barHeight, NBSP } from "./dom.js";
 
 // Profitable-but-broken (12 мар) next to a clean profit and the worst day — the product's point in 3 rows.
 const DIARY_DATES = ["2026-02-27", "2026-03-02", "2026-03-12"];
 const WEEK_DATES = ["2026-03-11", "2026-03-12", "2026-03-13"];
-const RULE_SHORT = Object.freeze({ "max-trades": "> 10 сделок", "max-loss": "убыток > 2 000 ₽" });
+const RULE_SHORT = Object.freeze({ "max-trades": `>${NBSP}10 сделок`, "max-loss": `убыток >${NBSP}2${NBSP}000${NBSP}₽` });
 const pickDays = (dates) => DAYS.filter((d) => dates.includes(d.date));
 const moneyClass = (v) => (v < 0 ? "text-loss" : "text-gain");
 
@@ -63,9 +63,10 @@ function renderWeek() {
   const broken = days.filter((d) => d.broken.length).length;
   const bars = el("ol", { class: "flex h-[104px] items-end gap-3", "aria-label": "Неделя 9–13 марта" },
     days.map((day) => weekBar(day, maxTrades)));
+  const greenBroken = days.find((d) => d.pnl > 0 && d.broken.length);
   const note = el("p", { class: "mt-4 border-t border-line pt-3 text-[13px] leading-snug text-ink-2" },
     `9–13 мар: ${formatMoney(total)}, нарушения в ${broken} из ${days.length} дней. `,
-    "Плюсовой четверг — тоже нарушение: 25 сделок при лимите 10.");
+    greenBroken ? `Плюсовой четверг — тоже нарушение: ${tradesWord(greenBroken.trades)} при лимите ${RULES[0].limit}.` : null);
   byId("week-sample").append(bars, note);
 }
 
@@ -97,7 +98,7 @@ function renderInsight() {
   const keptAvg = avg(DAYS.filter((d) => !d.broken.length));
   setText("ai-insight",
     `В дни с нарушениями вы открывали в среднем ${formatNum(brokenAvg)} сделки, в дни по правилам — ${formatNum(keptAvg)}. ` +
-    `Шорты прибыльны вдвое чаще лонгов (${formatPct(shorts.winRate)} против ${formatPct(longs.winRate)}), но это лишь ${shortShare} % сделок.`);
+    `Шорты закрывались в плюс вдвое чаще лонгов (${formatPct(shorts.winRate)} против ${formatPct(longs.winRate)}), но это лишь ${shortShare}${NBSP}% сделок.`);
   setText("ai-basis", `Основано на ${SUMMARY.trades} сделках периода · иллюстрация, не торговая рекомендация`);
 }
 

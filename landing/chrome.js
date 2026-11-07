@@ -10,9 +10,12 @@ function currentTheme(root) {
 
 export function initThemeToggle() {
   const root = document.documentElement;
-  byId("theme-toggle").addEventListener("click", () => {
+  const toggle = byId("theme-toggle");
+  toggle.setAttribute("aria-pressed", String(currentTheme(root) === "dark"));
+  toggle.addEventListener("click", () => {
     const next = currentTheme(root) === "dark" ? "light" : "dark";
     root.dataset.theme = next;
+    toggle.setAttribute("aria-pressed", String(next === "dark"));
     try { localStorage.setItem("q-theme", next); } catch (e) { /* storage blocked — theme lasts this visit only */ }
   });
 }

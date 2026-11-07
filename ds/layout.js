@@ -38,10 +38,10 @@ function label(text, cls = "") {
 }
 
 function desktopDiagram() {
-  const content = el("div", { class: "flex flex-1 flex-col gap-2 p-3" },
-    el("div", { class: "flex items-center justify-between" }, label("контент ≤ 1180"), label("поля 40")),
+  const content = el("div", { class: "flex min-w-0 flex-1 flex-col gap-2 p-3" },
+    el("div", { class: "flex flex-wrap items-center justify-between gap-x-2" }, label("контент ≤ 1180"), label("поля 40")),
     el("div", { class: "h-6 rounded-[3px] border border-dashed border-ink-3/70" }),
-    el("div", { class: "grid flex-1 grid-cols-[1fr_88px] gap-2" },
+    el("div", { class: "grid flex-1 grid-cols-[minmax(0,1fr)_minmax(0,88px)] gap-2" },
       el("div", { class: "rounded-[3px] border border-dashed border-ink-3/70" }),
       el("div", { class: "rounded-[3px] border border-dashed border-ink-3/70" })));
   return el("figure", {},
@@ -65,7 +65,7 @@ function mobileDiagram() {
 }
 
 function grid() {
-  return el("div", { class: "grid items-end gap-8 sm:grid-cols-[1fr_160px]" }, desktopDiagram(), mobileDiagram());
+  return el("div", { class: "grid items-end gap-8 sm:grid-cols-[minmax(0,1fr)_160px]" }, desktopDiagram(), mobileDiagram());
 }
 
 /* ---------- Radius + elevation ---------- */

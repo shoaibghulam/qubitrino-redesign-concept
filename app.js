@@ -36,7 +36,10 @@ function markBadge(cls) {
 
 function navLink(label, key, cls, withBadge) {
   const link = el("a", { href: `#/${key}`, "data-route": key, class: cls }, icon(key), el("span", {}, label));
-  if (key === "mark" && withBadge) link.append(markBadge(withBadge));
+  if (key !== "mark") return link;
+  // The dot is visual only; screen readers get the same state as text
+  link.append(el("span", { class: "sr-only", "data-mark-sr": "" }, " — не сделана"));
+  if (withBadge) link.append(markBadge(withBadge));
   return link;
 }
 
@@ -66,7 +69,9 @@ function updateNav(route) {
 }
 
 function updateBadges(state) {
-  document.querySelectorAll("[data-mark-badge]").forEach((badge) => badge.classList.toggle("hidden", Boolean(state.todayMark)));
+  const done = Boolean(state.todayMark);
+  document.querySelectorAll("[data-mark-badge]").forEach((badge) => badge.classList.toggle("hidden", done));
+  document.querySelectorAll("[data-mark-sr]").forEach((text) => { text.textContent = done ? "" : " — не сделана"; });
 }
 
 function initSheet() {
@@ -98,14 +103,43 @@ function notFound() {
   };
 }
 
+function renderError() {
+  return {
+    title: "Ошибка",
+    render(root) {
+      root.append(pageHead("Что-то пошло не так", "Раздел не открылся",
+        "Данные не пострадали. Обновите страницу или откройте другой раздел."),
+      el("a", { href: "#/home", class: `${BTN_PRIMARY} mt-6` }, "На главную"));
+    },
+  };
+}
+
+/** Renders a view; a throwing view is replaced by an error state instead of a blank page */
+function mount(view, root) {
+  try {
+    return { view, cleanup: view.render(root) ?? null };
+  } catch (error) {
+    root.replaceChildren();
+    const fallback = renderError();
+    fallback.render(root);
+    reportError(error); // surfaces in the console / error tracking without breaking navigation
+    return { view: fallback, cleanup: null };
+  }
+}
+
 function render() {
   const route = routeFromHash();
-  const view = ROUTES[route] ?? notFound();
+  const view = Object.hasOwn(ROUTES, route) ? ROUTES[route] : notFound();
   const root = document.getElementById("view");
-  if (typeof cleanup === "function") cleanup();
+  if (typeof cleanup === "function") {
+    const previous = cleanup;
+    cleanup = null;
+    previous();
+  }
   root.replaceChildren();
-  cleanup = view.render(root) ?? null;
-  document.title = `${view.title} — ${TITLE_SUFFIX}`;
+  const mounted = mount(view, root);
+  cleanup = mounted.cleanup;
+  document.title = `${mounted.view.title} — ${TITLE_SUFFIX}`;
   updateNav(route);
   if (!firstRender) {
     window.scrollTo(0, 0);
@@ -132,8 +166,19 @@ function initTheme() {
   });
 }
 
+/** Skip link: move focus to <main> without touching the hash (the hash is the router) */
+function initSkipLink() {
+  const main = document.getElementById("main");
+  document.getElementById("skip-link").addEventListener("click", (event) => {
+    event.preventDefault();
+    main.focus();
+    main.scrollIntoView({ block: "start" });
+  });
+}
+
 renderNav();
 initSheet();
+initSkipLink();
 initTheme();
 updateBadges(getState());
 subscribe(updateBadges);

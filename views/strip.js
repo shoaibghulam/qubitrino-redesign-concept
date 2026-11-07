@@ -1,17 +1,17 @@
 /* «Отметки дней» — the signature component: one bar per trading day,
    height = √(trades / max), fill = kept (solid ink) or broken (amber + hatch). */
-import { RULES, formatDate, formatMoney } from "../data.js";
+import { formatDate, formatMoney } from "../data.js";
 import { el, tradesWord } from "./dom.js";
 
 const SIZES = Object.freeze({
   full: { max: 118, min: 14, box: "h-[158px]", col: "min-w-[40px]" },
-  mini: { max: 56, min: 8, box: "h-[88px]", col: "min-w-[22px]" },
+  mini: { max: 56, min: 8, box: "h-[88px]", col: "min-w-[16px]" },
 });
 
 export function describeDay(day) {
   const { day: d, month, weekday } = formatDate(day.date);
   const rules = day.broken.length
-    ? `нарушено: ${day.broken.map((id) => RULES.find((r) => r.id === id).label.toLowerCase()).join("; ")}`
+    ? `нарушено: ${day.brokenRules.map((r) => r.label.toLowerCase()).join("; ")}`
     : "все правила соблюдены";
   return `${d} ${month}, ${weekday} — ${tradesWord(day.trades)}, ${formatMoney(day.pnl)}; ${rules}`;
 }

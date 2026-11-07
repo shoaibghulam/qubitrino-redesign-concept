@@ -52,7 +52,7 @@ const NAMING = Object.freeze([
 ]);
 
 function namingTable() {
-  return el("div", { class: "overflow-x-auto rounded-md border border-line bg-surface", role: "region", tabindex: "0", "aria-label": "Соглашения об именах" },
+  return el("div", { class: "relative overflow-x-auto rounded-md border border-line bg-surface", role: "region", tabindex: "0", "aria-label": "Соглашения об именах" },
     el("table", { class: "w-full min-w-[680px] text-left text-[13px]" },
       el("caption", { class: "sr-only" }, "Соглашения об именах: CSS, Tailwind, правило"),
       el("thead", { class: "text-[11px] uppercase tracking-[0.08em] text-ink-2" },

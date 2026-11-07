@@ -34,7 +34,7 @@ function headerCell(col, sort, onSort) {
   if (!col.sortable) return el("th", { scope: "col", class: `px-3 py-3 font-medium ${align}` }, col.label);
   const active = sort.key === col.key;
   const btn = el("button", {
-    type: "button",
+    type: "button", "data-key": `sort-${col.key}`,
     class: `inline-flex min-h-8 items-center gap-1 rounded-sm uppercase tracking-[0.06em] hover:text-ink ${active ? "text-ink" : ""} ${col.right ? "flex-row-reverse" : ""}`,
   }, col.label, icon("sort", 14));
   btn.addEventListener("click", () => onSort(col.key));
@@ -74,21 +74,23 @@ export function dealsStack(rows) {
       el("p", { class: "num text-[12px] text-ink-3" }, `${t.symbol} · ${price(t.openPrice)} → ${price(t.closePrice)}`))));
 }
 
+const PAGE_BTN = "grid h-10 min-w-10 place-items-center rounded-sm px-2 text-[14px] hover:bg-sunken disabled:opacity-40 disabled:hover:bg-transparent aria-[current=page]:bg-ink aria-[current=page]:text-paper";
+const STEP_BTN = "h-10 shrink-0 rounded-sm px-3 text-[14px] hover:bg-sunken disabled:opacity-40";
+
 function pageButton(label, page, current, onPage, extra = {}) {
-  const btn = el("button", {
-    type: "button", class: "grid h-10 min-w-10 place-items-center rounded-sm px-2 text-[14px] hover:bg-sunken disabled:opacity-40 disabled:hover:bg-transparent aria-[current=page]:bg-ink aria-[current=page]:text-paper",
-    "aria-current": current ? "page" : null, ...extra,
-  }, label);
+  const btn = el("button", { type: "button", class: PAGE_BTN, "aria-current": current ? "page" : null, ...extra }, label);
   btn.addEventListener("click", () => onPage(page));
   return btn;
 }
 
+/** Numbered pages from 640px; on phones «Назад · стр. 3 из 6 · Вперёд» so the pager never overflows */
 export function pagination(page, pages, onPage) {
   if (pages <= 1) return null;
   const numbers = Array.from({ length: pages }, (_, i) =>
-    pageButton(el("span", { class: "num" }, String(i + 1)), i, i === page, onPage, { "aria-label": `Страница ${i + 1}` }));
-  return el("nav", { "aria-label": "Страницы сделок", class: "mt-4 flex items-center justify-center gap-1 sm:justify-end" },
-    pageButton("Назад", page - 1, false, onPage, { disabled: page === 0, class: "h-10 rounded-sm px-3 text-[14px] hover:bg-sunken disabled:opacity-40" }),
-    numbers,
-    pageButton("Вперёд", page + 1, false, onPage, { disabled: page === pages - 1, class: "h-10 rounded-sm px-3 text-[14px] hover:bg-sunken disabled:opacity-40" }));
+    pageButton(el("span", { class: "num" }, String(i + 1)), i, i === page, onPage, { "aria-label": `Страница ${i + 1}`, "data-key": `page-${i}` }));
+  return el("nav", { "aria-label": "Страницы сделок", class: "mt-4 flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-end" },
+    pageButton("Назад", page - 1, false, onPage, { disabled: page === 0, class: STEP_BTN, "data-key": "prev" }),
+    el("span", { class: "num text-[13px] text-ink-2 sm:hidden", "aria-current": "page" }, `стр. ${page + 1} из ${pages}`),
+    el("span", { class: "hidden items-center gap-1 sm:flex" }, numbers),
+    pageButton("Вперёд", page + 1, false, onPage, { disabled: page === pages - 1, class: STEP_BTN, "data-key": "next" }));
 }

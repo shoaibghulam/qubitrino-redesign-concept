@@ -1,6 +1,6 @@
 /* Hero product fragment: «Отметки дней» strip + discipline split, all from data.js. */
 import { ACCOUNT, DAYS, RULES, disciplineSplit, formatDate, formatMoney } from "../data.js";
-import { el, setText, byId, daysWord, tradesWord, barHeight } from "./dom.js";
+import { el, setText, byId, daysWord, tradesWord, barHeight, formatShare } from "./dom.js";
 
 const STRIP_MAX_PX = 104;
 const STRIP_MIN_PX = 10;
@@ -32,11 +32,11 @@ function renderStrip() {
   DAYS.forEach((day) => strip.append(stripItem(day, maxTrades)));
 }
 
-/** Share of the period's loss that came from days with broken rules. */
+/** Share of the period's loss that came from days with broken rules; null when there is no loss to share. */
 export function brokenShare({ keptPnl, brokenPnl }) {
   const total = keptPnl + brokenPnl;
-  if (total >= 0 || brokenPnl >= 0) return 0;
-  return Math.round((brokenPnl / total) * 100);
+  if (!Number.isFinite(total) || total >= 0 || brokenPnl >= 0) return null;
+  return Math.min(100, Math.round((brokenPnl / total) * 100));
 }
 
 export function renderHero() {
@@ -49,6 +49,6 @@ export function renderHero() {
   setText("hero-kept-n", daysWord(split.kept.length));
   setText("hero-broken-n", daysWord(split.broken.length));
   const share = brokenShare(split);
-  setText("hero-share", `${share} %`);
-  byId("hero-share-bar").style.width = `${share}%`;
+  setText("hero-share", formatShare(share));
+  byId("hero-share-bar").style.width = `${share ?? 0}%`;
 }

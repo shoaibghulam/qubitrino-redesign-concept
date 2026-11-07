@@ -3,7 +3,11 @@
 */
 import { el, serialize } from "./dom.js";
 import { icon } from "./icons.js";
-import { DAYS, disciplineSplit, formatMoney } from "../data.js";
+import { DAYS, RULES, disciplineSplit, formatMoney } from "../data.js";
+import { brokenShare } from "../landing/hero.js";
+import { daysWord } from "../landing/dom.js";
+
+const NBSP = " ";
 
 const TOAST_MS = 5000;
 
@@ -111,15 +115,16 @@ export function skeletonSpec() {
 /* ---------- AI insight ---------- */
 
 export function aiSpec() {
-  const { broken, brokenPnl, keptPnl } = disciplineSplit(DAYS);
-  const share = Math.round((brokenPnl / (brokenPnl + keptPnl)) * 100);
+  const split = disciplineSplit(DAYS);
+  const share = brokenShare(split);
+  const shareText = share === null ? "—" : `${share}${NBSP}%`;
   const worst = DAYS.reduce((a, b) => (b.pnl < a.pnl ? b : a));
   const block = el("aside", { "aria-labelledby": "ds-ai-h", class: "max-w-[640px] border-l-2 border-ai py-1 pl-5" },
-    el("p", { id: "ds-ai-h", class: "flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.08em] text-ai" }, icon("ai", 16), "Разбор ИИ · неделя"),
+    el("p", { id: "ds-ai-h", class: "flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.08em] text-ai" }, icon("ai", 16), "Разбор ИИ · период"),
     el("p", { class: "mt-3 text-[17px] font-medium leading-snug" },
-      `${share} % убытка — ${broken.length} дней, когда правила были нарушены. Худший — 2 марта: ${worst.trades} сделки при лимите 10, ${formatMoney(worst.pnl)}.`),
+      `На ${daysWord(split.broken.length)} с нарушениями пришлось ${shareText} убытка. Худший — 2 марта: ${worst.trades} сделки при лимите ${RULES[0].limit}, ${formatMoney(worst.pnl)}.`),
     el("p", { class: "mt-2 text-[14px] leading-relaxed text-ink-2" },
-      "В дни по правилам результат почти ноль. Попробуйте жёсткую паузу после 10-й сделки: не стоп торговли, а 30 минут до следующего входа."),
+      `Дни по правилам за тот же период — ${formatMoney(split.keptPnl)}. Попробуйте жёсткую паузу после ${RULES[0].limit}-й сделки: не стоп торговли, а 30 минут до следующего входа.`),
     el("p", { class: "mt-3 text-[12px] text-ink-2" }, "Цифры взяты из журнала сделок. Совет — гипотеза, проверьте её на следующей неделе."));
   return {
     id: "cmp-ai", title: "Блок ИИ-разбора",
@@ -132,14 +137,17 @@ export function aiSpec() {
 
 /* ---------- Bottom tab bar ---------- */
 
-const TABS = Object.freeze([["Главная", "home"], ["Сделки", "deals"], ["Цифры", "numbers", true], ["Отметка", "mark"], ["Отчёты", "reports"]]);
+// Same order as the real cabinet (app.js): four links + «Ещё», a button that opens a sheet.
+const TABS = Object.freeze([["Главная", "home"], ["Сделки", "deals"], ["Отметка", "mark"], ["Цифры", "numbers", true]]);
+const TAB_CLS = "flex min-h-[56px] w-full flex-col items-center justify-center gap-1";
 
 export function tabbarSpec() {
   const items = TABS.map(([label, key, current]) => el("li", {},
     el("a", {
       href: "#cmp-tabbar", "aria-current": current ? "page" : null,
-      class: `flex min-h-[56px] flex-col items-center justify-center gap-1 ${current ? "font-medium text-action" : "text-ink-2"}`,
+      class: `${TAB_CLS} ${current ? "font-medium text-action" : "text-ink-2"}`,
     }, icon(key, 20), label)));
+  items.push(el("li", {}, el("button", { type: "button", "aria-haspopup": "dialog", class: `${TAB_CLS} text-ink-2` }, icon("more", 20), "Ещё")));
   const nav = el("nav", { "aria-label": "Разделы кабинета (пример)", class: "border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur" },
     el("ul", { class: "grid grid-cols-5 text-[11px]" }, items));
   const phone = el("div", { class: "mx-auto w-full max-w-[390px] overflow-hidden rounded-md border border-line bg-paper" },
@@ -149,7 +157,7 @@ export function tabbarSpec() {
     nav);
   return {
     id: "cmp-tabbar", title: "Нижняя навигация (мобильная)",
-    lede: "Пять разделов, а не семь: «Правила» и «Неделя» на телефоне открываются с главной. Текущий раздел — синий и полужирный: два сигнала, не один.",
+    lede: "Пять мест, а не семь: «Правила», «Неделя» и «Отчёты» — в меню «Ещё». Текущий раздел — синий и полужирный: два сигнала, не один.",
     demo: phone, stage: "plain",
     notes: ["В продукте — fixed inset-x-0 bottom-0 + отступ safe-area; основному контенту — pb-28, чтобы фокус не прятался под панелью."],
     snippet: serialize(nav),

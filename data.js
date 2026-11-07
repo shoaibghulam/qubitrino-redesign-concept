@@ -1,9 +1,11 @@
 /*
   Data source: demo-otchet-mt5.html (fictional MT5 report supplied with the test task).
-  Daily rows are aggregated from the 138 closing deals; summary figures are copied
-  from the report's "Результаты" block. Rules are illustrative — the real ones are
+  Daily rows are grouped from the 138 positions in trades.js by close date; summary figures
+  are copied from the report's "Результаты" block. Rules are illustrative — the real ones are
   set by the trader in «Правила».
 */
+import { TRADES } from "./trades.js";
+
 export const ACCOUNT = Object.freeze({
   name: "Иванов И. И.",
   number: "5000000001",
@@ -30,25 +32,25 @@ export const SUMMARY = Object.freeze({
 
 export const RULES = Object.freeze([
   Object.freeze({ id: "max-trades", label: "Не больше 10 сделок в день", limit: 10 }),
-  Object.freeze({ id: "max-loss", label: "Дневной убыток не больше 2 000 ₽", limit: -2000 }),
+  Object.freeze({ id: "max-loss", label: "Дневной убыток не больше 2 000 ₽", limit: -2000 }),
 ]);
 
-// [date ISO, P&L ₽, trades, winning trades]
-const RAW_DAYS = [
-  ["2026-02-24", -89, 4, 1],
-  ["2026-02-25", -102, 3, 0],
-  ["2026-02-26", -508, 7, 0],
-  ["2026-02-27", 2062, 5, 3],
-  ["2026-03-02", -24594, 43, 4],
-  ["2026-03-11", -1073, 2, 0],
-  ["2026-03-12", 3322, 25, 8],
-  ["2026-03-13", -11929, 24, 3],
-  ["2026-03-16", -2539, 4, 0],
-  ["2026-03-17", -11654, 12, 2],
-  ["2026-03-26", -280, 1, 0],
-  ["2026-03-27", -524, 5, 1],
-  ["2026-03-30", -785, 3, 0],
-];
+const round2 = (v) => Math.round(v * 100) / 100;
+
+/** Trading days grouped from TRADES by close date: { date, pnl, trades, wins } in date order */
+function groupTrades(trades) {
+  const byDate = new Map();
+  trades.forEach((t) => {
+    const date = t.close.slice(0, 10);
+    const prev = byDate.get(date) ?? { date, pnl: 0, trades: 0, wins: 0 };
+    byDate.set(date, { date, pnl: prev.pnl + t.profit, trades: prev.trades + 1, wins: prev.wins + (t.profit > 0 ? 1 : 0) });
+  });
+  return [...byDate.values()]
+    .sort((x, y) => (x.date < y.date ? -1 : 1))
+    .map((d) => Object.freeze({ ...d, pnl: round2(d.pnl) }));
+}
+
+export const RAW_DAYS = Object.freeze(groupTrades(TRADES));
 
 function brokenRules(pnl, trades) {
   const broken = [];
@@ -57,10 +59,9 @@ function brokenRules(pnl, trades) {
   return broken;
 }
 
+/** Days checked against the default RULES (used by the print report) */
 export const DAYS = Object.freeze(
-  RAW_DAYS.map(([date, pnl, trades, wins]) =>
-    Object.freeze({ date, pnl, trades, wins, broken: brokenRules(pnl, trades) })
-  )
+  RAW_DAYS.map((day) => Object.freeze({ ...day, broken: brokenRules(day.pnl, day.trades) }))
 );
 
 export function disciplineSplit(days) {

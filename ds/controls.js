@@ -18,7 +18,7 @@ const VARIANTS = Object.freeze([
 const STATES = Object.freeze(["обычная", "наведение", "фокус", "недоступна", "загрузка"]);
 
 function spinner() {
-  const root = svg("svg", { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", class: "animate-spin" });
+  const root = svg("svg", { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", "aria-hidden": "true", class: "motion-safe:animate-spin" });
   root.append(svg("circle", { cx: 12, cy: 12, r: 9, stroke: "currentColor", "stroke-width": 2.2, opacity: 0.25 }));
   root.append(svg("path", { d: "M21 12a9 9 0 0 0-9-9", stroke: "currentColor", "stroke-width": 2.2, "stroke-linecap": "round" }));
   return root;
@@ -42,7 +42,7 @@ function buttonMatrix() {
   const rows = VARIANTS.map((v) => el("tr", {},
     el("th", { scope: "row", class: "pr-4 text-left text-[13px] font-medium text-ink-2" }, v.name),
     STATES.map((s) => el("td", { class: "p-2" }, button(v, s)))));
-  return el("div", { class: "-m-2 overflow-x-auto p-2", role: "region", tabindex: "0", "aria-label": "Кнопки: варианты и состояния" },
+  return el("div", { class: "relative -m-2 overflow-x-auto p-2", role: "region", tabindex: "0", "aria-label": "Кнопки: варианты и состояния" },
     el("table", { class: "border-separate border-spacing-0" },
       el("caption", { class: "sr-only" }, "Варианты кнопок по строкам, состояния по столбцам"),
       el("thead", {}, head), el("tbody", {}, rows)));
@@ -170,8 +170,8 @@ function radioCard(value, title, desc, checked) {
 
 export function radioSpec() {
   const cards = [
-    radioCard("week", "Неделя", "Пн–пт, итог в субботу утром", true),
-    radioCard("month", "Месяц", "Календарный месяц, для отчёта ментору", false),
+    radioCard("week", "Неделя", "Пн–пт, итог в пятницу вечером", true),
+    radioCard("month", "Месяц", "Календарный месяц, для отчёта наставнику", false),
     radioCard("custom", "Свой период", "Например, 24.02 — 30.03.2026", false),
   ];
   const fieldset = el("fieldset", {},
